@@ -11,6 +11,8 @@ require "watir-webdriver"
 
 tout = [] # Création d'une matrice pour accueillir la totalité des résultats
 fichier = "sigpeg.csv" # Déclaration du nom du fichier dans lequel seront écrit nos résultats
+url1 = "http://geoegl.msp.gouv.qc.ca/Services/glo/V5/gloServeurHTTP.php?type=gps&cle=public&texte=GPS%20"
+url2 = "&epsg=4326&format=xml"
 
  # Fonction pour convertir des coordonnées en degrés, minutes, secondes en coordonnées décimales
 
@@ -114,10 +116,12 @@ listePuits.each do |noPuits|
 
 			when 7
 				titre = "Latitude (décimal)"
-				donneesPuits[titre] = latLong(contenu)
+				lat = latLong(contenu)
+				donneesPuits[titre] = lat
 			when 8
 				titre = "Longitude (décimal)"
-				donneesPuits[titre] = latLong(contenu) * -1
+				long = latLong(contenu) * -1
+				donneesPuits[titre] = long
 
 			# Aux lignes 12, 13 et 14, on transforme en mètres, au besoin, des données en pieds à l'aide de la fonction «metres» créée à cette fin
 
@@ -147,6 +151,27 @@ listePuits.each do |noPuits|
 
 		end
 
+		# On se sert enfin du service de géolocalisation [GLO] du ministère de la Sécurité publique (http://geoegl.msp.gouv.qc.ca/accueil/)
+		# pour identifier dans quelles municipalité, région et localité se trouve chaque puits à l'aide des coordonnées décimales calculées plus haut
+
+		url = url1 + long.to_s + "," + lat.to_s + url2
+
+		requete = Nokogiri::XML(open(url))
+
+		municipalite = requete.xpath("//municipalite").text
+		localite = requete.xpath("//localite").text.strip
+
+		espace = municipalite.index(" (")
+		region = municipalite[espace+2..-2]
+		municipalite = municipalite[0..espace].strip
+		if municipalite == ""
+			municipalite = "Fleuve Saint-Laurent"
+		end
+		
+		donneesPuits["Municipalité"] = municipalite
+		donneesPuits["Région administrative"] = region
+		donneesPuits["Localité"] = localite
+
 		# Affichage des données extraites pour vérification
 
 		puts "------------------------------"
@@ -165,7 +190,7 @@ listePuits.each do |noPuits|
 		if fiche.at_css("td.entete2 a")
 			noPuitsReentre = noPuits + "-R1"
 			sigpegAccueil.execute_script('ouvrir("ficheDescriptive?type=popup&mode=ficheReent&cle=' + noPuitsReentre + '&cleReentre=' + noPuitsReentre + '&menu=puit&ong_active=ongl_descriptive","FicheReentre","850","650");')
-			sigpegAccueil.window(:index, 4).use do
+			sigpegAccueil.window(:index, 3).use do
 
 				fiche = Nokogiri::HTML(sigpegAccueil.html)
 				donneesPuits = {}
@@ -219,6 +244,24 @@ listePuits.each do |noPuits|
 
 				end
 
+				url = url1 + long.to_s + "," + lat.to_s + url2
+
+				requete = Nokogiri::XML(open(url))
+
+				municipalite = requete.xpath("//municipalite").text
+				localite = requete.xpath("//localite").text.strip
+
+				espace = municipalite.index(" (")
+				region = municipalite[espace+2..-2]
+				municipalite = municipalite[0..espace].strip
+				if municipalite == ""
+					municipalite = "Fleuve Saint-Laurent"
+				end
+				
+				donneesPuits["Municipalité"] = municipalite
+				donneesPuits["Région administrative"] = region
+				donneesPuits["Localité"] = localite
+		
 				# Affichage des données extraites pour vérification
 
 				puts donneesPuits
