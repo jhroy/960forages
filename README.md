@@ -1,7 +1,7 @@
 960forages
 ==========
 
-Base de données de tous les forages effectués au Québec depuis 1860 (d'exploration ou d'exploitation de gaz naturel ou de pétrole). :skull:
+Base de données de tous les forages effectués au Québec depuis 1860 (d'exploration ou d'exploitation de gaz naturel ou de pétrole).
 Données glanées sur le site du [Système d'information géoscientifique pétrolier et gazier (SIGPEG) du ministère québécois de l'Énergie et des Ressources naturelles] (http://sigpeg.mrn.gouv.qc.ca).
 
 Data on every well drilled in Quebec since 1860 for exploration or exploitation of oil or natural gas.
